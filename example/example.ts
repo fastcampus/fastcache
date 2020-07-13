@@ -1,4 +1,4 @@
-import FastCache from '../src/fast-cache';
+import { FastCache } from '../src/fast-cache';
 
 const main = async () => {
   const cache = FastCache.create({ redis: { host: 'localhost', port: 6379, db: 0 } });
