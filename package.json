@@ -1,12 +1,12 @@
 {
   "name": "@fastcampus/fastcache",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "description": "fast and simple cache using redis",
   "url": "https://github.com/fastcampusgit/fastcache",
   "repository": "https://github.com/fastcampusgit/fastcache",
   "license": "MIT",
   "main": "dist/index.js",
-  "type": "dist/index.d.ts",
+  "types": "dist/index.d.ts",
   "scripts": {
     "prepublish": "npm run build",
     "lint": "eslint --ext .js --ext .ts ./src",
