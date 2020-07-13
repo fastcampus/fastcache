@@ -12,7 +12,7 @@ type FastCacheOpts = {
   createRedisClient?: (ClientOpts) => RedisClient;
 };
 
-export default class FastCache {
+export class FastCache {
   static create(opts?: FastCacheOpts): FastCache {
     return new FastCache(opts);
   }
