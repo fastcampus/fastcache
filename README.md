@@ -2,6 +2,8 @@
 
 fast and simple cache using redis
 
+[![npm version](https://badge.fury.io/js/%40fastcampus%2Ffastcache.svg)](https://badge.fury.io/js/%40fastcampus%2Ffastcache)
+
 ## Getting Started
 
 ```[js](js)
