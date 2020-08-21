@@ -36,16 +36,23 @@ await map.getAll(['one', 'two']);
 
 ## Contributing
 
-### lint
-
-```console
-$ npm run lint
-```
-
 ### test
 
 ```console
 $ npm run test
 ```
 
+### build
+
+```console
+$ npm run build
+```
+
+### watch(continuous build)
+
+```console
+$ npm start
+```
+
+---
 may the **SOURCE** be with you...
