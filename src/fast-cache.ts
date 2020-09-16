@@ -2,6 +2,7 @@ import Debug from 'debug';
 import { ClientOpts, RedisClient, createClient } from 'redis';
 import { promisify } from 'util';
 import { createHash } from 'crypto';
+import Redlock from 'redlock';
 
 const debug = Debug('fastcache');
 
@@ -20,6 +21,9 @@ export class FastCache {
   private client: any;
   private prefix: string;
   private ttl: number;
+  private redlock: any;
+  private redlockttl: number;
+  private locker: any;
 
   private constructor(opts?: FastCacheOpts) {
     this.init(opts);
@@ -113,7 +117,9 @@ export class FastCache {
     return {
       key,
       push: async (value: string): Promise<void> => this.client.rpushAsync(key, value),
+      //pop -> dequeue
       pop: async (): Promise<string> => this.client.rpopAsync(key),
+      //unshift -> enqueue
       unshift: async (value: string): Promise<void> => this.client.lpushAsync(key, value),
       shift: async (): Promise<string> => this.client.lpopAsync(key),
       setAll: async (values: Array<string>): Promise<void> => this.client.lpushAsync(key, values),
@@ -137,6 +143,29 @@ export class FastCache {
       removeAll: async (fields: Array<string>): Promise<void> => this.client.hdelAsync(key, fields),
       length: async (): Promise<number> => this.client.hlenAsync(key),
     };
+  }
+
+  //--------------------------------------------------------
+  public turnOnLock(client: any) {
+    if (!client) client = this.client;
+    this.redlock = new Redlock([client]);
+    /*
+    this.redlock.on('clientError', function (err: Error) {
+      debug('A redis error has occured:', err);
+    });
+		*/
+    this.redlockttl = 1000;
+  }
+
+  public async lock(key: string): Promise<any> {
+    debug('withLock', key);
+    this.locker = await this.redlock.lock(key, this.redlockttl);
+    return this.locker;
+  }
+
+  public async unlock(): Promise<Boolean> {
+    await this.locker.unlock();
+    return true;
   }
 
   //---------------------------------------------------------

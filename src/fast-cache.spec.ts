@@ -1,4 +1,4 @@
-import redis from 'redis-mock';
+import redis from 'redis';
 import { FastCache } from './fast-cache';
 
 describe('FastCache', () => {
@@ -135,12 +135,29 @@ describe('FastCache', () => {
             })
             .then((result) => {
               // FIXME: why undefined?
-              expect(result).toBeUndefined();
-              // expect(result).toBeNull();
+              // SOLVE: redis-mock undefined, real redis is null
+              //expect(result).toBeUndefined();
+              expect(result).toBeNull();
               done();
             });
         });
       });
+    });
+  });
+
+  describe('withLock', () => {
+    test('should work', async () => {
+      cache.turnOnLock(client);
+      const lockKey = 'locks:hello-lock';
+      const test = 'test' + Math.random();
+      await cache.set(lockKey, test);
+      await cache.lock(lockKey);
+      const r1 = await cache.get(lockKey);
+      expect(r1).toBe(test);
+      await cache.set(lockKey, 'anything');
+      const r2 = await cache.get(lockKey);
+      expect(r2).toBe(test);
+      await cache.unlock();
     });
   });
 
