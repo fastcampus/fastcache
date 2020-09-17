@@ -166,14 +166,15 @@ describe('FastCache', () => {
         };
         const lockKey = 'locks:hello-lock';
         const test = 'test' + Math.random();
-        await cache.lock(lockKey, 1000);
+        await cache.lock(lockKey, 500);
         const list = cache.list('test-list');
         await list.push('bar');
         await list.push('foo');
-        setTimeout(() => testFunction(), 500);
-        await sleep(2000);
+        setTimeout(() => testFunction(), 300);
         await cache.unlock();
+        await sleep(3000);
         expect(await list.getAll()).toEqual(['bar', 'foo', 'bar2', 'foo2']);
+        debug('should work', await list.getAll());
       } catch (err) {
         debug(err);
       }
@@ -194,14 +195,15 @@ describe('FastCache', () => {
         };
         const lockKey = 'locks:hello-lock';
         const test = 'test' + Math.random();
-        await cache.lock(lockKey, 1000);
+        await cache.lock(lockKey, 3000);
         const list = cache.list('test-list');
         await list.push('bar');
         await list.push('foo');
         setTimeout(() => testFunction(), 500);
-        await sleep(2000);
+        await sleep(1000);
         await cache.unlock();
         expect(await list.getAll()).toEqual(['bar', 'foo']);
+        debug('should not work', await list.getAll());
       } catch (err) {
         debug(err);
       }
