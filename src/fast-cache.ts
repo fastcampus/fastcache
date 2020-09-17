@@ -22,7 +22,6 @@ export class FastCache {
   private prefix: string;
   private ttl: number;
   private redlock: any;
-  private redlockttl: number;
   private locker: any;
 
   private constructor(opts?: FastCacheOpts) {
@@ -146,20 +145,32 @@ export class FastCache {
   }
 
   //--------------------------------------------------------
-  public turnOnLock(client: any) {
-    if (!client) client = this.client;
-    this.redlock = new Redlock([client]);
-    /*
+  public turnOnLock() {
+    this.redlock = new Redlock([this.client], {
+      // the expected clock drift; for more details
+      // see http://redis.io/topics/distlock
+      driftFactor: 0.01, // time in ms
+
+      // the max number of times Redlock will attempt
+      // to lock a resource before erroring
+      retryCount: 10,
+
+      // the time in ms between attempts
+      retryDelay: 200, // time in ms
+
+      // the max time in ms randomly added to retries
+      // to improve performance under high contention
+      // see https://www.awsarchitectureblog.com/2015/03/backoff.html
+      retryJitter: 200, // time in ms
+    });
     this.redlock.on('clientError', function (err: Error) {
       debug('A redis error has occured:', err);
     });
-		*/
-    this.redlockttl = 1000;
   }
 
-  public async lock(key: string): Promise<any> {
-    debug('withLock', key);
-    this.locker = await this.redlock.lock(key, this.redlockttl);
+  public async lock(key: string, ttl: number = 2000): Promise<any> {
+    debug('lock', key);
+    this.locker = await this.redlock.lock(key, ttl);
     return this.locker;
   }
 

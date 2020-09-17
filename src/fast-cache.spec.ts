@@ -1,5 +1,9 @@
+import Debug from 'debug';
 import redis from 'redis';
 import { FastCache } from './fast-cache';
+
+const debug = Debug('fastcache:test');
+const sleep = async (ms) => new Promise((res) => setTimeout(res, ms));
 
 describe('FastCache', () => {
   let client;
@@ -147,17 +151,60 @@ describe('FastCache', () => {
 
   describe('withLock', () => {
     test('should work', async () => {
-      cache.turnOnLock(client);
-      const lockKey = 'locks:hello-lock';
-      const test = 'test' + Math.random();
-      await cache.set(lockKey, test);
-      await cache.lock(lockKey);
-      const r1 = await cache.get(lockKey);
-      expect(r1).toBe(test);
-      await cache.set(lockKey, 'anything');
-      const r2 = await cache.get(lockKey);
-      expect(r2).toBe(test);
-      await cache.unlock();
+      try {
+        const redisConfig = { host: 'localhost', port: 6379, db: 0 };
+        const cache2 = FastCache.create({ redis: redisConfig, createRedisClient: redis.createClient });
+        cache.turnOnLock();
+        cache2.turnOnLock();
+
+        const testFunction = async () => {
+          await cache2.lock(lockKey, 2000);
+          const list = await cache2.list('test-list');
+          await list.push('bar2');
+          await list.push('foo2');
+          await cache2.unlock();
+        };
+        const lockKey = 'locks:hello-lock';
+        const test = 'test' + Math.random();
+        await cache.lock(lockKey, 1000);
+        const list = cache.list('test-list');
+        await list.push('bar');
+        await list.push('foo');
+        setTimeout(() => testFunction(), 500);
+        await sleep(2000);
+        await cache.unlock();
+        expect(await list.getAll()).toEqual(['bar', 'foo', 'bar2', 'foo2']);
+      } catch (err) {
+        debug(err);
+      }
+    });
+    test('should not work', async () => {
+      try {
+        const redisConfig = { host: 'localhost', port: 6379, db: 0 };
+        const cache2 = FastCache.create({ redis: redisConfig, createRedisClient: redis.createClient });
+        cache.turnOnLock();
+        cache2.turnOnLock();
+
+        const testFunction = async () => {
+          await cache2.lock(lockKey, 2000);
+          const list = await cache2.list('test-list');
+          await list.push('bar2');
+          await list.push('foo2');
+          await cache2.unlock();
+        };
+        const lockKey = 'locks:hello-lock';
+        const test = 'test' + Math.random();
+        await cache.lock(lockKey, 1000);
+        const list = cache.list('test-list');
+        await list.push('bar');
+        await list.push('foo');
+        setTimeout(() => testFunction(), 500);
+        await sleep(2000);
+        await cache.unlock();
+        expect(await list.getAll()).toEqual(['bar', 'foo']);
+      } catch (err) {
+        debug(err);
+      }
     });
   });
 
