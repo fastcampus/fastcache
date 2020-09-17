@@ -30,7 +30,7 @@ jobs:
           node-version: ${{ matrix.node-version }}
       - name: Bootstrap
         run: |
-          npm run install
+          npm i 
       - name: Begin Test
         run: |
           npm run ci:test
