@@ -1,4 +1,4 @@
-# fastredis
+# fastcache
 
 fast and simple cache using redis
 
@@ -6,7 +6,7 @@ fast and simple cache using redis
 
 ## Getting Started
 
-```[js](js)
+```js
 const { FastCache } = require('@fastcampus/fastcache');
 
 const cache = FastCache.create({ redis: { host: 'localhost', port: 6379, db: 0 } });
