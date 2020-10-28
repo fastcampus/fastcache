@@ -1,5 +1,5 @@
 import redis from 'redis-mock';
-import { FastCache } from './fast-cache';
+import { FastCache } from './FastCache';
 
 describe('FastCache', () => {
   let client;

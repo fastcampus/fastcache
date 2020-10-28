@@ -1,1 +1,1 @@
-export { FastCache } from './fast-cache';
+export { FastCache } from './FastCache';
