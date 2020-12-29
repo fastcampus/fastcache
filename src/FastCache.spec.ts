@@ -134,9 +134,7 @@ describe('FastCache', () => {
               return map.get('__not_found__');
             })
             .then((result) => {
-              // FIXME: why undefined?
-              expect(result).toBeUndefined();
-              // expect(result).toBeNull();
+              expect(result).toBeNull();
               done();
             });
         });
