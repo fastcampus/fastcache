@@ -1,6 +1,6 @@
 {
   "name": "@fastcampus/fastcache",
-  "version": "0.0.7",
+  "version": "0.0.8",
   "description": "fast and simple cache using redis",
   "url": "https://github.com/fastcampus/fastcache",
   "repository": "https://github.com/fastcampus/fastcache",
