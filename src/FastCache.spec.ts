@@ -144,6 +144,66 @@ describe('FastCache', () => {
     });
   });
 
+  describe('set', () => {
+    describe('add', () => {
+      test('should work', (done) => {
+        const set = cache.setOf('hello');
+        set
+          .add('foo', 'bar', 'baz')
+          .then(() => {
+            return set.add('bar', 'baz', 'qux');
+          })
+          .then(() => {
+            client.smembers('hello', (err, result) => {
+              expect(err).toBeNull();
+              expect(new Set(result)).toEqual(new Set(['foo', 'bar', 'baz', 'qux']));
+              done();
+            });
+          });
+      });
+    });
+    describe('remove', () => {
+      test('should work', async (done) => {
+        client.sadd('hello', 'foo', 'bar', 'baz', 'qux', () => {
+          const set = cache.setOf('hello');
+          set
+            .remove('foo')
+            .then(() => {
+              return set.remove('bar', 'baz');
+            })
+            .then(() => {
+              client.smembers('hello', (err, result) => {
+                expect(err).toBeNull();
+                expect(new Set(result)).toEqual(new Set(['qux']));
+                done();
+              });
+            });
+        });
+      });
+    });
+    describe('contains', () => {
+      test('should work', (done) => {
+        client.sadd('hello', 'foo', 'bar', () => {
+          const set = cache.setOf('hello');
+          set
+            .contains('foo')
+            .then((result) => {
+              expect(result).toBeTruthy();
+              return set.contains('bar');
+            })
+            .then((result) => {
+              expect(result).toBeTruthy();
+              return set.contains('__not_found__');
+            })
+            .then((result) => {
+              expect(result).toBeFalsy();
+              done();
+            });
+        });
+      });
+    });
+  });
+
   describe.skip('withCache', () => {
     test('should be tested', (done) => {
       done();
