@@ -5,12 +5,43 @@ import { createHash } from 'crypto';
 
 const debug = Debug('fastcache');
 
-type FastCacheOpts = {
+export interface FastCacheOpts {
   prefix?: string;
   ttl?: number;
   redis?: ClientOpts;
   createRedisClient?: (ClientOpts) => RedisClient;
-};
+}
+
+export interface ListOperations {
+  key: string;
+  push(value: string): Promise<void>;
+  pop(): Promise<string>;
+  unshift(value: string): Promise<void>;
+  shift(): Promise<string>;
+  setAll(values: Array<string>): Promise<void>;
+  getAll(start: number, stop: number): Promise<string>;
+  removeAll(start: number, stop: number): Promise<void>;
+  length(): Promise<number>;
+}
+
+export interface MapOperations {
+  key: string;
+  set(field: string, value: string): Promise<void>;
+  get(field: string): Promise<string>;
+  remove(field: string): Promise<void>;
+  setAll(obj: any): Promise<void>;
+  getAll(fields: Array<string>): Promise<Array<string>>;
+  removeAll(fields: Array<string>): Promise<void>;
+  length(): Promise<number>;
+}
+
+export interface SetOperations {
+  key: string;
+  add(...values: Array<string>): Promise<void>;
+  remove(...values: Array<string>): Promise<void>;
+  contains(value: string): Promise<boolean>;
+  length(): Promise<number>;
+}
 
 export class FastCache {
   static create(opts?: FastCacheOpts): FastCache {
@@ -109,7 +140,7 @@ export class FastCache {
   //---------------------------------------------------------
   // list
 
-  public list(key: string) {
+  public list(key: string): ListOperations {
     return {
       key,
       push: async (value: string): Promise<void> => this.client.rpushAsync(key, value),
@@ -126,7 +157,7 @@ export class FastCache {
   //---------------------------------------------------------
   // map
 
-  map(key: string) {
+  map(key: string): MapOperations {
     return {
       key,
       set: async (field: string, value: string): Promise<void> => this.client.hsetAsync(key, field, value),
@@ -136,6 +167,18 @@ export class FastCache {
       getAll: async (fields: Array<string>): Promise<Array<string>> => this.client.hmgetAsync(key, fields),
       removeAll: async (fields: Array<string>): Promise<void> => this.client.hdelAsync(key, fields),
       length: async (): Promise<number> => this.client.hlenAsync(key),
+    };
+  }
+
+  //---------------------------------------------------------
+
+  setOf(key: string): SetOperations {
+    return {
+      key,
+      add: async (...values: Array<string>) => this.client.saddAsync(key, ...values),
+      remove: async (...values: Array<string>) => this.client.sremAsync(key, ...values),
+      contains: async (value: string): Promise<boolean> => this.client.sismemberAsync(key, value),
+      length: async (): Promise<number> => this.client.scard(key),
     };
   }
 
